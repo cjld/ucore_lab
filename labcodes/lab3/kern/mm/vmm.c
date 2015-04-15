@@ -370,11 +370,12 @@ do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr) {
     ptep = get_pte(mm->pgdir, addr, 1);
     if (ptep == NULL) goto failed;
 
-    cprintf("%08x\n", *ptep);
+    cprintf("!!%08x\n", *ptep);
     if (*ptep == 0) {
         //(2) if the phy addr isn't exist, then alloc a page & map the phy addr with logical addr
+    	cprintf("begin pgdir_alloc_page\n");
     	struct Page *p = pgdir_alloc_page(mm->pgdir, addr, perm);
-        cprintf("begin swap\n");
+    	cprintf("begin pgdir_alloc_page ok\n");
     	if (p == NULL) goto failed;
     	cprintf("map %08x -> %08x\n", addr, page2pa(p));
     }
@@ -400,6 +401,7 @@ do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr) {
                 cprintf("swap_in in do_pgfault failed\n");
                 goto failed;
             }    
+            cprintf("alalala\n");
             page_insert(mm->pgdir, page, addr, perm);
             swap_map_swappable(mm, addr, page, 1);
         }
