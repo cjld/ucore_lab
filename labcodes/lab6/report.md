@@ -1,69 +1,62 @@
-### Á·Ï°Ò»
+ï»¿### ç»ƒä¹ ä¸€
 ---
 
-1¡¢ÇëÀí½â²¢·ÖÎösched_calssÖÐ¸÷¸öº¯ÊýÖ¸ÕëµÄÓÃ·¨£¬²¢½ÓºÏRound Robin µ÷¶ÈËã·¨ÃèucoreµÄµ÷¶ÈÖ´ÐÐ¹ý³Ì
+1ã€è¯·ç†è§£å¹¶åˆ†æžsched_classä¸­å„ä¸ªå‡½æ•°æŒ‡é’ˆçš„ç”¨æ³•ï¼Œå¹¶æŽ¥åˆRound Robin è°ƒåº¦ç®—æ³•æucoreçš„è°ƒåº¦æ‰§è¡Œè¿‡ç¨‹
 
-sched_calssÖÐ°üº¬ÒÔÏÂº¯ÊýÖ¸Õë£º
+sched_class ä¸­åŒ…å«ä»¥ä¸‹å‡½æ•°æŒ‡é’ˆ, é€šè¿‡è¿™äº›å‡½æ•°æ¥æè¿°è°ƒåº¦ç®—æ³•
+```
+    //åˆå§‹åŒ–é˜Ÿåˆ—
+    void (*init)(struct run_queue *rq)
 
-void (*init)(struct run_queue *rq)£º³õÊ¼»¯µ÷¶È¶ÓÁÐ
+    //åŠ å…¥é˜Ÿåˆ—ä¸­
+    void (*enqueue)(struct run_queue *rq, struct proc_struct *proc)
 
-void (*enqueue)(struct run_queue *rq, struct proc_struct *proc)£º°Ñ½ø³Ì·Åµ½¶ÓÁÐÖÐ
+    //ä»Žé˜Ÿåˆ—ä¸­å–å‡º
+    void (*dequeue)(struct run_queue *rq, struct proc_struct *proc)
 
-void (*dequeue)(struct run_queue *rq, struct proc_struct *proc)£º°Ñ½ø³Ì´Ó¶ÓÁÐÖÐÈ¡³ö
+    //é€‰æ‹©ä¸‹ä¸€ä¸ªè¿è¡Œçš„è¿›ç¨‹
+    struct proc_struct *(*pick_next)(struct run_queue *rq)
 
-struct proc_struct *(*pick_next)(struct run_queue *rq)£º´Ó¶ÓÁÐÖÐÑ¡ÔñÏÂÒ»¸öÔËÐÐµÄ½ø³Ì
+    //å¤„ç†æ—¶é’Ÿä¸­æ–­
+    void (*proc_tick)(struct run_queue *rq, struct proc_struct *proc)
 
-void (*proc_tick)(struct run_queue *rq, struct proc_struct *proc)£º´¦ÀíÊ±ÖÓÖÐ¶Ï
+```
 
-µ÷¶ÈÊ±Ê×ÏÈ½øÐÐ³õÊ¼»¯£¬½«½ø³ÌÊýÖÃ0£¬Èç¹û½ø³ÌÊÇRUNNABLEµÄ£¬½«Æä¼ÓÈërunlistÖÐ£¬ÉèÖÃ½ø³ÌµÄrqÎªµ±Ç°ÔËÐÐ¶ÓÁÐ£¬²¢¸üÐÂ½ø³ÌÊýºÍÊ±¼äÆ¬¡£È»ºóÌôÑ¡Ò»¸öºÏÊÊµÄ½ø³ÌÔËÐÐ£¬½«Æä´Ó¶ÓÁÐÖÐpop³öÈ¥£¬²¢¸üÐÂ½ø³ÌÊý¡£¾ßÌåµ½Round RobinËã·¨£¬Î¬»¤Ò»¸ö½ø³Ì¶ÓÁÐ£¬Ã¿´ÎÌôÑ¡¶ÓÊ×½ø³ÌÔËÐÐ£¬µ±½ø³ÌÊ±¼äÆ¬ÓÃÍêÊ±£¬µ÷ÓÃschedule½«Æä·Åµ½¶ÓÎ²¡£
+åˆå§‹åŒ–æ—¶ï¼Œå°†è¿›ç¨‹æ•°ç½®0ï¼Œå¹¶ä¸”å°†RUNNABLEçš„è¿›ç¨‹åŠ å…¥runlistä¸­ï¼Œ
+è®¾ç½®è¿›ç¨‹çš„rqä¸ºå½“å‰è¿è¡Œé˜Ÿåˆ—ï¼Œå¹¶æ›´æ–°è¿›ç¨‹æ•°å’Œæ—¶é—´ç‰‡ã€‚
 
-2¡¢ÇëÔÚÊµÑé±¨¸æÖÐ¼òÒªËµÃ÷ÈçºÎÉè¼ÆÊµÏÖ¡±¶à¼¶·´À¡¶ÓÁÐµ÷¶ÈËã·¨¡°£¬¸ø³ö¸ÅÒªÉè¼Æ£¬¹ÄÀø¸ø³öÏêÏ¸Éè¼Æ
+å½“è¿è¡Œä¸€ä¸ªè¿›ç¨‹æ—¶ï¼Œä¼šå°†å…¶ä»Žé˜Ÿåˆ—ä¸­å¼¹å‡º
 
-Î¬»¤N¸öÔËÐÐ¶ÓÁÐ£¬·Ö±ð¶ÔÓ¦n¸öÓÅÏÈ¼¶£¬²¢½øÐÐ³õÊ¼»¯¡£µ±½ø³Ì½øÈë´ýµ÷¶ÈµÄ¶ÓÁÐµÈ´ýÊ±£¬Ê×ÏÈÌôÑ¡ÓÅÏÈ¼¶×î¸ßµÄ¶ÓÁÐ¡£Ñ¡È¡µÄ½øÖ´ÐÐ¹ýÒ»¸öÊ±¼äÆ¬ºó£¬Èç¹û»¹Ã»ÓÐÖ´ÐÐÍê±Ï£¬Ôò½«Æä¼ÓÈëµ½ÏÂÒ»ÓÅÏÈ¼¶¶ÓÁÐµÄÎ²²¿¡£¼´enqueueÊ±¼ÇÂ¼ÓÅÏÈ¼¶n£¬dequeueÊ±½«Æä¼ÓÈëÓÅÏÈ¼¶Îª(n+1)µÄ¶ÓÁÐÖÐ£¬Ñ¡È¡Ê±°´ÓÅÏÈ¼¶Ë³ÐòÕâÑùÔÚÃ¿¸ö¶ÓÁÐÖÐË³ÐòÑ¡È¡¡£
+å¯¹äºŽRound Robinç®—æ³•ï¼Œåˆ™æ˜¯æ¯æ¬¡æŒ‘é€‰é˜Ÿé¦–è¿›ç¨‹è¿è¡Œï¼Œå†æ¬¡scheduleæ—¶æ”¾å…¥é˜Ÿå°¾
+
+2ã€è¯·åœ¨å®žéªŒæŠ¥å‘Šä¸­ç®€è¦è¯´æ˜Žå¦‚ä½•è®¾è®¡å®žçŽ°â€å¤šçº§åé¦ˆé˜Ÿåˆ—è°ƒåº¦ç®—æ³•â€œï¼Œç»™å‡ºæ¦‚è¦è®¾è®¡ï¼Œé¼“åŠ±ç»™å‡ºè¯¦ç»†è®¾è®¡
+
+å¯ä»¥ç»´æŠ¤ä¸€ä¸ªä¼˜å…ˆé˜Ÿåˆ—, ä»¥ä¼˜å…ˆçº§ä¸ºç¬¬ä¸€å…³é”®å­—, ä¸Šä¸€æ¬¡è¿è¡Œæ—¶é—´ä¸ºç¬¬äºŒå…³é”®å­—
 
 ---
-### Á·Ï°¶þ
+### ç»ƒä¹ äºŒ
 ---
 
-1¡¢ÊµÏÖ Stride Scheduling µ÷¶ÈËã·¨
+1ã€å®žçŽ° Stride Scheduling è°ƒåº¦ç®—æ³•
 
-°´ÕÕ×¢ÊÍÖÐµÄÌáÊ¾£¬Ê×ÏÈÐèÒªÐÞ¸Äproc.cÖÐµÄ³õÊ¼»¯ÄÚÈÝ£¬Ôö¼Ó¶Ôrq¡¢priority¡¢strideµÈ±äÁ¿µÄ³õÊ¼»¯£»È»ºó»¹ÐèÒªÐÞ¸ÄtrapÖÐÊ±ÖÓÖÐ¶ÏµÄÏà¹Ø´úÂë£¬Ö®Ç°µÄÐ´·¨tickÃ¿µ½100»áÇåÁã£¬¶øpriorityµÄÏß³ÌÖ»ÓÐtickµ½1000Ê±²Å»áÍË³ö£¬»áµ¼ÖÂËÀÑ­»·¡£´ËÍâ£¬»¹ÐèÒªÉèÖÃBIG_STRIDEµÄÖµ£¬ÎªÁËÖ§³Ö¾¡¿ÉÄÜ¶àµÄÓÅÏÈ¼¶Ñ¡È¡ÁË0x7FFFFFFF¡£
+æŒ‰ç…§æ³¨é‡Šä¸­çš„æç¤ºï¼Œé¦–å…ˆéœ€è¦ä¿®æ”¹proc.cä¸­çš„åˆå§‹åŒ–å†…å®¹ï¼Œå¢žåŠ å¯¹rqã€priorityã€strideç­‰å˜é‡çš„åˆå§‹åŒ–ï¼›ç„¶åŽè¿˜éœ€è¦ä¿®æ”¹trapä¸­æ—¶é’Ÿä¸­æ–­çš„ç›¸å…³ä»£ç ï¼Œä¹‹å‰çš„å†™æ³•tickæ¯åˆ°100ä¼šæ¸…é›¶ï¼Œè€Œpriorityçš„çº¿ç¨‹åªæœ‰tickåˆ°1000æ—¶æ‰ä¼šé€€å‡ºï¼Œä¼šå¯¼è‡´æ­»å¾ªçŽ¯ã€‚æ­¤å¤–ï¼Œè¿˜éœ€è¦è®¾ç½®BIG_STRIDEçš„å€¼ï¼Œä¸ºäº†æ”¯æŒå°½å¯èƒ½å¤šçš„ä¼˜å…ˆçº§é€‰å–äº†0x7FFFFFFFã€‚
 
-È»ºóÐèÒª³õÊ¼»¯£¬ÎÒÖ±½ÓÓÃlist_init(&(rq->run_list))½øÐÐ³õÊ¼»¯¡£Èë¶Óº¯Êý²ÉÓÃÐ±¶Ñ½á¹¹£¬ÓÃskew_heap_insertÊµÏÖ£¬²¢¸üÐÂÊ±¼äÆ¬¡¢½ø³ÌÊý¡¢rqµÈÐÅÏ¢¡£³ö¶Óº¯ÊýÍ¬ÑùÊ¹ÓÃÐ±¶Ñ£¬Í¨¹ýskew_heap_removeÊµÏÖ¡£Ñ¡È¡ÏÂ¸ö½ø³Ìº¯Êýµ±¶ÓÁÐ·Ç¿ÕÊ±£¬ÓÉÓÚ²ÉÓÃÁËÐ±¶Ñ£¬Ö±½Ó·µ»Ørq->lab6_run_pool¶ÔÓ¦µÄµÚÒ»¸ö½ø³Ì¼´¿É¡£Ê±ÖÓÖÐ¶Ï´¦Àíº¯ÊýÖ»Ðè½«time_slice¼õ1£¬¼õÖÁ0Ê±½«need_reschedÖÃ1¼´¿É¡£
+ç„¶åŽéœ€è¦åˆå§‹åŒ–ï¼Œæˆ‘ç›´æŽ¥ç”¨list_init(&(rq->run_list))è¿›è¡Œåˆå§‹åŒ–ã€‚å…¥é˜Ÿå‡½æ•°é‡‡ç”¨æ–œå †ç»“æž„ï¼Œç”¨skew_heap_insertå®žçŽ°ï¼Œå¹¶æ›´æ–°æ—¶é—´ç‰‡ã€è¿›ç¨‹æ•°ã€rqç­‰ä¿¡æ¯ã€‚å‡ºé˜Ÿå‡½æ•°åŒæ ·ä½¿ç”¨æ–œå †ï¼Œé€šè¿‡skew_heap_removeå®žçŽ°ã€‚é€‰å–ä¸‹ä¸ªè¿›ç¨‹å‡½æ•°å½“é˜Ÿåˆ—éžç©ºæ—¶ï¼Œç”±äºŽé‡‡ç”¨äº†æ–œå †ï¼Œç›´æŽ¥è¿”å›žrq->lab6_run_poolå¯¹åº”çš„ç¬¬ä¸€ä¸ªè¿›ç¨‹å³å¯ã€‚æ—¶é’Ÿä¸­æ–­å¤„ç†å‡½æ•°åªéœ€å°†time_sliceå‡1ï¼Œå‡è‡³0æ—¶å°†need_reschedç½®1å³å¯ã€‚
 
-ÔÚÆÀ²â¹ý³ÌÖÐ·¢ÏÖ£¬ÓÉÓÚÊ±¼äÆ¬³¤¶ÈÌ«¶ÌÇÐ»»Ì«¿ì£¬forktreeºÍpriorityµÄÆÀ²â½á¹û²»ÎÈ¶¨£¬ÓÐÊ±»á³ö´í¡£
+åœ¨è¯„æµ‹è¿‡ç¨‹ä¸­å‘çŽ°ï¼Œç”±äºŽæ—¶é—´ç‰‡é•¿åº¦å¤ªçŸ­åˆ‡æ¢å¤ªå¿«ï¼Œforktreeå’Œpriorityçš„è¯„æµ‹ç»“æžœä¸ç¨³å®šï¼Œæœ‰æ—¶ä¼šå‡ºé”™ã€‚
 
 ---
 ### Others
 ---
 
-1¡¢Óë±ê×¼´ð°¸µÄÇø±ð
+1ã€ä¸Žæ ‡å‡†ç­”æ¡ˆçš„åŒºåˆ«
 
-ÔÚproc.cÖÐ³õÊ¼»¯priorityÊ±£¬´ð°¸ÖÐ³õÊ¼»¯Îª0£¬¶øÎÒ³õÊ¼»¯Îª1£»ÏàÓ¦µØÔÚpick_nextÖÐÎÒÒ²Ã»ÓÐÏñ´ð°¸ÖÐÒ»ÑùÅÐ¶ÏpriorityÊÇ·ñÎª0£¬¶øÊÇÖ±½Ó³ýÒÔpriority¡£ÆäÓà²¿·ÖÓÉÓÚ¾ùÎª°´×¢ÊÍÌáÊ¾ÊµÏÖ£¬Óë´ð°¸ÖÐµÄÐ±¶Ñ²¿·Ö´óÍ¬Ð¡Òì¡£
+æŒ‰æ³¨é‡Šæç¤ºå®žçŽ°ï¼Œä¸Žç­”æ¡ˆä¸­çš„æ–œå †éƒ¨åˆ†å¤§åŒå°å¼‚ã€‚
 
-2¡¢Éæ¼°µÄÖØÒªÖªÊ¶µã
+2ã€æ¶‰åŠçš„é‡è¦çŸ¥è¯†ç‚¹
 
-½ø³Ìµ÷¶È¡¢½ø³Ì¶ÓÁÐÎ¬»¤¡¢µ÷¶ÈËã·¨µÈ¡£
+è¿›ç¨‹è°ƒåº¦ã€è¿›ç¨‹é˜Ÿåˆ—ç»´æŠ¤ã€è°ƒåº¦ç®—æ³•ç­‰ã€‚
 
-3¡¢Î´ÔÚÊµÑéÖÐÌåÏÖµÄÖªÊ¶µã
+3ã€æœªåœ¨å®žéªŒä¸­ä½“çŽ°çš„çŸ¥è¯†ç‚¹
 
-³ýRound RobinÍâµÄÆäËüµ÷¶ÈËã·¨¡£
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+é™¤Round Robinå¤–çš„å…¶å®ƒè°ƒåº¦ç®—æ³•ã€‚
