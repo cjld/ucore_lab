@@ -375,10 +375,18 @@ do_exit(int error_code) {
     panic("do_exit will not return!! %d.\n", current->pid);
 }
 
+
+static int child_main(void *arg) {
+    cprintf("child kernel_thread, pid = %d, ppid = %d, name = %s\n", current->pid,
+    		current->parent->pid,  get_proc_name(current));
+    return 0;
+}
+
 // init_main - the second kernel thread used to create user_main kernel threads
 static int
 init_main(void *arg) {
     cprintf(" kernel_thread, pid = %d, name = %s\n", current->pid, get_proc_name(current));
+    kernel_thread(child_main, "child", 0);
 	schedule();
     cprintf(" kernel_thread, pid = %d, name = %s , arg  %s \n", current->pid, get_proc_name(current), (const char *)arg);
 	schedule();

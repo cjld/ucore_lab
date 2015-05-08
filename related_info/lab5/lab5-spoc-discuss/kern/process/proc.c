@@ -458,6 +458,7 @@ do_exit(int error_code) {
     if (mm != NULL) {
         lcr3(boot_cr3);
         if (mm_count_dec(mm) == 0) {
+        	cprintf("mm_destroy\n");
             exit_mmap(mm);
             put_pgdir(mm);
             mm_destroy(mm);
@@ -666,6 +667,7 @@ do_execve(const char *name, size_t len, unsigned char *binary, size_t size) {
     if (mm != NULL) {
         lcr3(boot_cr3);
         if (mm_count_dec(mm) == 0) {
+        	cprintf("mm_destroy\n");
             exit_mmap(mm);
             put_pgdir(mm);
             mm_destroy(mm);

@@ -21,6 +21,17 @@ wakeup_proc(struct proc_struct *proc) {
     local_intr_restore(intr_flag);
 }
 
+const char * get_state_str(enum proc_state state) {
+#define ck_state(STATE) \
+	if (state == STATE) \
+		return "'"#STATE"'";
+
+	ck_state(PROC_UNINIT);
+	ck_state(PROC_SLEEPING);
+	ck_state(PROC_RUNNABLE);
+	ck_state(PROC_ZOMBIE);
+}
+
 void
 schedule(void) {
     bool intr_flag;
@@ -28,6 +39,9 @@ schedule(void) {
     struct proc_struct *next = NULL;
     local_intr_save(intr_flag);
     {
+    	struct proc_struct* tmp = current;
+    	cprintf("schedule proc %d, state %s\n", current->pid,
+    			get_state_str(current->state));
         current->need_resched = 0;
         last = (current == idleproc) ? &proc_list : &(current->list_link);
         le = last;
@@ -45,7 +59,15 @@ schedule(void) {
         next->runs ++;
         if (next != current) {
             proc_run(next);
+        	cprintf("my state become %s\n", get_state_str(tmp->state));
+        	cprintf("switch proc %d, state %s, run time %d\n",
+        			next->pid, get_state_str(next->state), next->runs);
+        } else {
+        	cprintf("my state become %s\n", get_state_str(tmp->state));
+        	cprintf("continue run proc %d, run time %d\n",
+        			current->pid, current->runs);
         }
+        cprintf("\n");
     }
     local_intr_restore(intr_flag);
 }
