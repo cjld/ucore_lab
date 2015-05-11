@@ -2,6 +2,7 @@ import os
 import random
 import numpy as np
 import itertools
+from copy import copy
 
 class Bankers(object):
     def __init__(self, totalResource):
@@ -41,20 +42,43 @@ class Bankers(object):
         return res
 
     def ExecuteProcess(self,index):
-
         #check if less avaliable than Request
-        # YOUR CODE, YOUR ID
+        # YOUR CODE, 2012011373
+        res = reduce(lambda a,b: a and b[0]<=b[1],
+                zip(self.need[index], self.avaliable), True)
+        #print 'res', res
+        if not res:
+            return False
+
+
         #check END here
 
         #allocating what they need.
-        # YOUR CODE, YOUR ID
+        # YOUR CODE, 2012011373
+        self.allocated[index] = copy(self.max[index])
         #allocating END here
-        pass
+        self.avaliable = self.CalcAvaliable()
+        self.pre_index = index
+
+        return True
+
 
     def TempSafeCheckAfterRelease(self):
         #check if at least one request can be done after previous process done. not check whole sequances.
         #if every element of Requests can't accepted after previous process done, this mean it is not safe state
-        # YOUR CODE, YOU ID
+        # YOUR CODE, 2012011373
+        index = self.pre_index
+        self.allocated[index] = [0]*resnum
+
+        self.avaliable = self.CalcAvaliable()
+        if index == procnum-1:
+            return True
+
+        res = reduce(lambda a,b: a and b[0]<=b[1],
+                zip(self.need[index+1], self.avaliable), True)
+
+        return res
+
         #check END here
         pass
 
