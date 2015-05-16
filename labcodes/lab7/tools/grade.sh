@@ -226,7 +226,7 @@ check_regexps() {
             found=$(($? == 0))
             if [ $found -eq $not ]; then
                 if [ $found -eq 0 ]; then
-                    msg="!! error: missing '$i'"
+                    msg="!! error: missing '$i' <--> '$qemu_out'"
                 else
                     msg="!! error: got unexpected line '$i'"
                 fi
