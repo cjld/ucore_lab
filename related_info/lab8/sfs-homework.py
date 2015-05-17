@@ -163,13 +163,13 @@ class inode:
     def free(self):
         self.ftype = 'free'
         self.addr  = -1
-        
+
 
 class fs:
     def __init__(self, numInodes, numData):
         self.numInodes = numInodes
         self.numData   = numData
-        
+
         self.ibitmap = bitmap(self.numInodes)
         self.inodes  = []
         for i in range(self.numInodes):
@@ -179,7 +179,7 @@ class fs:
         self.data    = []
         for i in range(self.numData):
             self.data.append(block('free'))
-    
+
         # root inode
         self.ROOT = 0
 
@@ -229,7 +229,7 @@ class fs:
     def dataFree(self, bnum):
         self.dbitmap.free(bnum)
         self.data[bnum].free()
-        
+
     def getParent(self, name):
         tmp = name.split('/')
         if len(tmp) == 2:
@@ -245,9 +245,17 @@ class fs:
 
         inum = self.nameToInum[tfile]
 
-    # YOUR CODE, YOUR ID
+    # YOUR CODE, 2012011375
         # IF inode.refcnt ==1, THEN free data blocks first, then free inode, ELSE dec indoe.refcnt
+        if self.inodes[inum].getRefCnt() == 1:
+            self.dataFree(inum)
+            self.inodeFree(inum)
+        else:
+            self.inodes[inum].decRefCnt()
         # remove from parent directory: delete from parent inum, delete from parent addr
+        num=self.nameToInum[self.getParent(tfile)]
+        self.inodes[num].decRefCnt()
+        self.data[num].delDirEntry(tfile)
     # DONE
 
         # finally, remove from files list
@@ -255,26 +263,54 @@ class fs:
         return 0
 
     def createLink(self, target, newfile, parent):
-    # YOUR CODE, YOUR ID
+    # YOUR CODE, 2012011375
         # find info about parent
+        pinum = self.nameToInum[parent]
         # is there room in the parent directory?
+        if self.inodes[pinum].getAddr().getFreeEntries() == 0:
+            return -1
         # if the newfile was already in parent dir?
+        if self.inodes[pinum].getAddr().dirEntryExists(newfile):
+            return -1
         # now, find inumber of target
+        tinum = self.nameToInum[target]
         # inc parent ref count
+        self.inodes[pinum].incRefCnt()
+        self.inodes[tinum].incRefCnt()
         # now add to directory
+        self.inodes[pinum].getAddr().addDirEntry(newfile, tinum)
     # DONE
         return tinum
 
     def createFile(self, parent, newfile, ftype):
-    # YOUR CODE, YOUR ID
+    # YOUR CODE, 2012011375
         # find info about parent
+        pinum = self.nameToInum[parent]
         # is there room in the parent directory?
+        if self.data[pinum].getFreeEntries() == 0:
+            return -1
         # have to make sure file name is unique
+        if self.data[pinum].dirEntryExists(newfile):
+            return -1
         # find free inode
+        inum = self.inodeAlloc()
+        if ftype == 'd':
+            addr = self.dataAlloc()
+            self.data[addr].setType(ftype)
+        elif ftype == 'f':
+            addr = -1
         # if a directory, have to allocate directory block for basic (., ..) info
         # now ok to init inode properly
+        if ftype == 'd':
+            self.inodes[inum].setAll(ftype, addr, 2)
+            self.data[addr].addDirEntry(".", inum)
+            self.data[addr].addDirEntry("..", pinum)
+        else:
+            self.inodes[inum].setAll(ftype, addr, 1)
         # inc parent ref count
+        self.inodes[pinum].incRefCnt()
         # and add to directory of parent
+        self.data[pinum].addDirEntry(newfile, inum)
     # DONE
         return inum
 
@@ -283,16 +319,25 @@ class fs:
         curSize = self.inodes[inum].getSize()
         dprint('writeFile: inum:%d cursize:%d refcnt:%d' % (inum, curSize, self.inodes[inum].getRefCnt()))
 
-    # YOUR CODE, YOUR ID
+    # YOUR CODE, 2012011375
         # file is full?
         # no data blocks left
+        if curSize== 0:
+            iaddr = self.dataAlloc()
+            if iaddr == -1:
+                return -1
+            self.inodes[inum].setAddr(iaddr)
+            self.data[iaddr].setType('f')
+        else:
+            iaddr = self.inodes[inum].getAddr()
         # write file data
+        self.data[iaddr].addData(data)
     # DONE
 
         if printOps:
             print 'fd=open("%s", O_WRONLY|O_APPEND); write(fd, buf, BLOCKSIZE); close(fd);' % tfile
         return 0
-            
+
     def doDelete(self):
         dprint('doDelete')
         if len(self.files) == 0:
@@ -326,7 +371,7 @@ class fs:
                 print 'link("%s", "%s");' % (target, fullName)
             return 0
         return -1
-    
+
     def doCreate(self, ftype):
         dprint('doCreate')
         parent = self.dirs[int(random.random() * len(self.dirs))]
@@ -377,7 +422,7 @@ class fs:
         print ''
         self.dump()
         print ''
-        
+
         for i in range(numRequests):
             if printOps == False:
                 print 'Which operation took place?'
@@ -423,8 +468,8 @@ class fs:
 parser = OptionParser()
 
 parser.add_option('-s', '--seed',        default=0,     help='the random seed',                      action='store', type='int', dest='seed')
-parser.add_option('-i', '--numInodes',   default=8,     help='number of inodes in file system',      action='store', type='int', dest='numInodes') 
-parser.add_option('-d', '--numData',     default=8,     help='number of data blocks in file system', action='store', type='int', dest='numData') 
+parser.add_option('-i', '--numInodes',   default=8,     help='number of inodes in file system',      action='store', type='int', dest='numInodes')
+parser.add_option('-d', '--numData',     default=8,     help='number of data blocks in file system', action='store', type='int', dest='numData')
 parser.add_option('-n', '--numRequests', default=10,    help='number of requests to simulate',       action='store', type='int', dest='numRequests')
 parser.add_option('-r', '--reverse',     default=False, help='instead of printing state, print ops', action='store_true',        dest='reverse')
 parser.add_option('-p', '--printFinal',  default=False, help='print the final set of files/dirs',    action='store_true',        dest='printFinal')
@@ -466,5 +511,3 @@ f = fs(options.numInodes, options.numData)
 #
 
 f.run(options.numRequests)
-
-
